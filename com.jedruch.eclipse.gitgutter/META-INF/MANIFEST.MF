@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Gitgutter
+Bundle-SymbolicName: com.jedruch.eclipse.gitgutter
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: com.jedruch.eclipse.gitgutter.Activator
+Bundle-Vendor: JEDRUCH
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-ActivationPolicy: lazy
