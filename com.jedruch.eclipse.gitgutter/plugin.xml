@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.workbench.texteditor.rulerColumns">
+      <column
+            class="com.jedruch.eclipse.gitgutter.GitGutterColumn"
+            enabled="true"
+            global="true"
+            id="com.jedruch.eclipse.gitgutter.column"
+            includeInMenu="true"
+            name="GitGutter">
+         <placement
+               gravity="1.0">
+         </placement>
+         <targetClass
+               class="org.eclipse.ui.texteditor.AbstractDecoratedTextEditor">
+         </targetClass>
+      </column>
+   </extension>
+
+</plugin>
