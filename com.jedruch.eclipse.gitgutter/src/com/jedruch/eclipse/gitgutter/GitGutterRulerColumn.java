@@ -1,6 +1,3 @@
-/*
- * Copyright (c) 2013, Sabre Inc.
- */
 package com.jedruch.eclipse.gitgutter;
 
 import org.eclipse.jface.text.source.LineNumberRulerColumn;
