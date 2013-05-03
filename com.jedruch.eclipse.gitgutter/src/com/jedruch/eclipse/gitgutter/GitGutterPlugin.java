@@ -1,5 +1,6 @@
 package com.jedruch.eclipse.gitgutter;
 
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -12,6 +13,12 @@ public class GitGutterPlugin extends AbstractUIPlugin {
 
 	// The plug-in ID
 	public static final String PLUGIN_ID = "com.jedruch.eclipse.gitgutter"; //$NON-NLS-1$
+
+	public static final String IMG_ADDED = "icons/added.gif";
+
+	public static final String IMG_DELETED = "";
+
+	public static final String IMG_MODIFIED = "";
 
 	// The shared instance
 	private static GitGutterPlugin plugin;
@@ -57,6 +64,10 @@ public class GitGutterPlugin extends AbstractUIPlugin {
 	 */
 	public static GitGutterPlugin getDefault() {
 		return plugin;
+	}
+
+	public static ImageDescriptor getImageDescriptor(String path) {
+		return getDefault().getImageRegistry().getDescriptor(path);
 	}
 
 }

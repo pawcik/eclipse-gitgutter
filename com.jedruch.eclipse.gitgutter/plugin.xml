@@ -27,6 +27,7 @@
    <extension
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
       <specification
+            annotationImageProvider="com.jedruch.eclipse.gitgutter.ui.AnnotationImageProvider"
             annotationType="com.jedruch.eclipse.gitgutter.diff"
             colorPreferenceKey="fullcoverage_color"
             colorPreferenceValue="192,255,192"
@@ -38,7 +39,7 @@
             isGoToNextNavigationTargetKey="fullcoverage_isGoToNextNavigationTargetKey"
             isGoToPreviousNavigationTarget="false"
             isGoToPreviousNavigationTargetKey="fullcoverage_isGoToPreviousNavigationTargetKey"
-            label="%fullCoverageAnnotation.label"
+            label="GitGutter"
             overviewRulerPreferenceKey="fullcoverage_overviewRuler"
             overviewRulerPreferenceValue="false"
             presentationLayer="0"

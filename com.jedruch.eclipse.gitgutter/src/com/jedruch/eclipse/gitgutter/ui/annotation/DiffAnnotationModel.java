@@ -30,13 +30,15 @@ import org.eclipse.jface.text.source.IAnnotationModelListenerExtension;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
+import com.jedruch.eclipse.gitgutter.ui.annotation.DiffAnnotation.DiffType;
+
 /**
  * IAnnotationModel implementation for efficient coverage highlighting.
  */
 public final class DiffAnnotationModel implements IAnnotationModel {
 
 	/** Key used to piggyback our model to the editor's model. */
-	private static final Object KEY = new Object();
+	public static final Object KEY = new Object();
 
 	/** List of current CoverageAnnotation objects */
 	private List<DiffAnnotation> annotations = new ArrayList<DiffAnnotation>(32);
@@ -113,7 +115,9 @@ public final class DiffAnnotationModel implements IAnnotationModel {
 
 	private void updateAnnotations(boolean force) {
 		annotations.clear();
-		annotations.add(new DiffAnnotation());
+		annotations.add(new DiffAnnotation(DiffType.ADDED, 1));
+		annotations.add(new DiffAnnotation(DiffType.MODIFIED, 3));
+		annotations.add(new DiffAnnotation(DiffType.DELETED, 4));
 		// final ISourceNode coverage = findSourceCoverageForEditor();
 		// if (coverage != null) {
 		// if (!annotated || force) {
