@@ -28,82 +28,82 @@ import com.jedruch.eclipse.gitgutter.ui.annotation.DiffAnnotationModel;
  */
 public class EditorTracker {
 
-  private final IWorkbench workbench;
+    private final IWorkbench workbench;
 
-  private IWindowListener windowListener = new IWindowListener() {
-    public void windowOpened(IWorkbenchWindow window) {
-      window.getPartService().addPartListener(partListener);
-    }
-
-    public void windowClosed(IWorkbenchWindow window) {
-      window.getPartService().removePartListener(partListener);
-    }
-
-    public void windowActivated(IWorkbenchWindow window) {
-    }
-
-    public void windowDeactivated(IWorkbenchWindow window) {
-    }
-  };
-
-  private IPartListener2 partListener = new IPartListener2() {
-    public void partOpened(IWorkbenchPartReference partref) {
-      annotateEditor(partref);
-    }
-
-    public void partActivated(IWorkbenchPartReference partref) {
-    }
-
-    public void partBroughtToTop(IWorkbenchPartReference partref) {
-    }
-
-    public void partVisible(IWorkbenchPartReference partref) {
-    }
-
-    public void partInputChanged(IWorkbenchPartReference partref) {
-    }
-
-    public void partClosed(IWorkbenchPartReference partref) {
-    }
-
-    public void partDeactivated(IWorkbenchPartReference partref) {
-    }
-
-    public void partHidden(IWorkbenchPartReference partref) {
-    }
-  };
-
-  public EditorTracker(IWorkbench workbench) {
-    this.workbench = workbench;
-    for (final IWorkbenchWindow w : workbench.getWorkbenchWindows()) {
-      w.getPartService().addPartListener(partListener);
-    }
-    workbench.addWindowListener(windowListener);
-    annotateAllEditors();
-  }
-
-  public void dispose() {
-    workbench.removeWindowListener(windowListener);
-    for (final IWorkbenchWindow w : workbench.getWorkbenchWindows()) {
-      w.getPartService().removePartListener(partListener);
-    }
-  }
-
-  private void annotateAllEditors() {
-    for (final IWorkbenchWindow w : workbench.getWorkbenchWindows()) {
-      for (final IWorkbenchPage p : w.getPages()) {
-        for (final IEditorReference e : p.getEditorReferences()) {
-          annotateEditor(e);
+    private IWindowListener windowListener = new IWindowListener() {
+        public void windowOpened(IWorkbenchWindow window) {
+            window.getPartService().addPartListener(partListener);
         }
-      }
-    }
-  }
 
-  private void annotateEditor(IWorkbenchPartReference partref) {
-    IWorkbenchPart part = partref.getPart(false);
-    if (part instanceof ITextEditor) {
-      DiffAnnotationModel.attach((ITextEditor) part);
+        public void windowClosed(IWorkbenchWindow window) {
+            window.getPartService().removePartListener(partListener);
+        }
+
+        public void windowActivated(IWorkbenchWindow window) {
+        }
+
+        public void windowDeactivated(IWorkbenchWindow window) {
+        }
+    };
+
+    private IPartListener2 partListener = new IPartListener2() {
+        public void partOpened(IWorkbenchPartReference partref) {
+            annotateEditor(partref);
+        }
+
+        public void partActivated(IWorkbenchPartReference partref) {
+        }
+
+        public void partBroughtToTop(IWorkbenchPartReference partref) {
+        }
+
+        public void partVisible(IWorkbenchPartReference partref) {
+        }
+
+        public void partInputChanged(IWorkbenchPartReference partref) {
+        }
+
+        public void partClosed(IWorkbenchPartReference partref) {
+        }
+
+        public void partDeactivated(IWorkbenchPartReference partref) {
+        }
+
+        public void partHidden(IWorkbenchPartReference partref) {
+        }
+    };
+
+    public EditorTracker(IWorkbench workbench) {
+        this.workbench = workbench;
+        for (final IWorkbenchWindow w : workbench.getWorkbenchWindows()) {
+            w.getPartService().addPartListener(partListener);
+        }
+        workbench.addWindowListener(windowListener);
+        annotateAllEditors();
     }
-  }
+
+    public void dispose() {
+        workbench.removeWindowListener(windowListener);
+        for (final IWorkbenchWindow w : workbench.getWorkbenchWindows()) {
+            w.getPartService().removePartListener(partListener);
+        }
+    }
+
+    private void annotateAllEditors() {
+        for (final IWorkbenchWindow w : workbench.getWorkbenchWindows()) {
+            for (final IWorkbenchPage p : w.getPages()) {
+                for (final IEditorReference e : p.getEditorReferences()) {
+                    annotateEditor(e);
+                }
+            }
+        }
+    }
+
+    private void annotateEditor(IWorkbenchPartReference partref) {
+        IWorkbenchPart part = partref.getPart(false);
+        if (part instanceof ITextEditor) {
+            DiffAnnotationModel.attach((ITextEditor) part);
+        }
+    }
 
 }

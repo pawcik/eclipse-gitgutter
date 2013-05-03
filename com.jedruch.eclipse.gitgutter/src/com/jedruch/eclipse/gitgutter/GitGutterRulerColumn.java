@@ -1,7 +1,6 @@
 package com.jedruch.eclipse.gitgutter;
 
 import org.eclipse.jface.text.source.LineNumberRulerColumn;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;

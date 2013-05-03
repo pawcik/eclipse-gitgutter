@@ -37,187 +37,183 @@ import com.jedruch.eclipse.gitgutter.ui.annotation.DiffAnnotation.DiffType;
  */
 public final class DiffAnnotationModel implements IAnnotationModel {
 
-	/** Key used to piggyback our model to the editor's model. */
-	public static final Object KEY = new Object();
+    /** Key used to piggyback our model to the editor's model. */
+    public static final Object KEY = new Object();
 
-	/** List of current CoverageAnnotation objects */
-	private List<DiffAnnotation> annotations = new ArrayList<DiffAnnotation>(32);
+    /** List of current CoverageAnnotation objects */
+    private List<DiffAnnotation> annotations = new ArrayList<DiffAnnotation>(32);
 
-	/** List of registered IAnnotationModelListener */
-	private ListenerList annotationModelListeners = new ListenerList();
+    /** List of registered IAnnotationModelListener */
+    private ListenerList annotationModelListeners = new ListenerList();
 
-	private final ITextEditor editor;
-	private final IDocument document;
-	private int openConnections = 0;
-	private boolean annotated = false;
+    private final ITextEditor editor;
+    private final IDocument document;
+    private int openConnections = 0;
+    private boolean annotated = false;
 
-	private IDocumentListener documentListener = new IDocumentListener() {
-		public void documentChanged(DocumentEvent event) {
-			updateAnnotations(false);
-		}
+    private IDocumentListener documentListener = new IDocumentListener() {
+        public void documentChanged(DocumentEvent event) {
+            updateAnnotations(false);
+        }
 
-		public void documentAboutToBeChanged(DocumentEvent event) {
-		}
-	};
+        public void documentAboutToBeChanged(DocumentEvent event) {
+        }
+    };
 
-	private DiffAnnotationModel(ITextEditor editor, IDocument document) {
-		this.editor = editor;
-		this.document = document;
-		updateAnnotations(true);
-	}
+    private DiffAnnotationModel(ITextEditor editor, IDocument document) {
+        this.editor = editor;
+        this.document = document;
+        updateAnnotations(true);
+    }
 
-	/**
-	 * Attaches a coverage annotation model for the given editor if the editor
-	 * can be annotated. Does nothing if the model is already attached.
-	 * 
-	 * @param editor
-	 *            Editor to attach a annotation model to
-	 */
-	public static void attach(ITextEditor editor) {
-		IDocumentProvider provider = editor.getDocumentProvider();
-		if (provider == null)
-			return;
-		IAnnotationModel model = provider.getAnnotationModel(editor
-				.getEditorInput());
-		if (!(model instanceof IAnnotationModelExtension))
-			return;
-		IAnnotationModelExtension modelex = (IAnnotationModelExtension) model;
+    /**
+     * Attaches a coverage annotation model for the given editor if the editor
+     * can be annotated. Does nothing if the model is already attached.
+     * 
+     * @param editor
+     *            Editor to attach a annotation model to
+     */
+    public static void attach(ITextEditor editor) {
+        IDocumentProvider provider = editor.getDocumentProvider();
+        if (provider == null)
+            return;
+        IAnnotationModel model = provider.getAnnotationModel(editor.getEditorInput());
+        if (!(model instanceof IAnnotationModelExtension))
+            return;
+        IAnnotationModelExtension modelex = (IAnnotationModelExtension) model;
 
-		IDocument document = provider.getDocument(editor.getEditorInput());
+        IDocument document = provider.getDocument(editor.getEditorInput());
 
-		DiffAnnotationModel coveragemodel = (DiffAnnotationModel) modelex
-				.getAnnotationModel(KEY);
-		if (coveragemodel == null) {
-			coveragemodel = new DiffAnnotationModel(editor, document);
-			modelex.addAnnotationModel(KEY, coveragemodel);
-		}
-	}
+        DiffAnnotationModel coveragemodel = (DiffAnnotationModel) modelex.getAnnotationModel(KEY);
+        if (coveragemodel == null) {
+            coveragemodel = new DiffAnnotationModel(editor, document);
+            modelex.addAnnotationModel(KEY, coveragemodel);
+        }
+    }
 
-	/**
-	 * Detaches the coverage annotation model from the given editor. If the
-	 * editor does not have a model attached, this method does nothing.
-	 * 
-	 * @param editor
-	 *            Editor to detach the annotation model from
-	 */
-	public static void detach(ITextEditor editor) {
-		IDocumentProvider provider = editor.getDocumentProvider();
-		// there may be text editors without document providers (SF #1725100)
-		if (provider == null)
-			return;
-		IAnnotationModel model = provider.getAnnotationModel(editor
-				.getEditorInput());
-		if (!(model instanceof IAnnotationModelExtension))
-			return;
-		IAnnotationModelExtension modelex = (IAnnotationModelExtension) model;
-		modelex.removeAnnotationModel(KEY);
-	}
+    /**
+     * Detaches the coverage annotation model from the given editor. If the
+     * editor does not have a model attached, this method does nothing.
+     * 
+     * @param editor
+     *            Editor to detach the annotation model from
+     */
+    public static void detach(ITextEditor editor) {
+        IDocumentProvider provider = editor.getDocumentProvider();
+        // there may be text editors without document providers (SF #1725100)
+        if (provider == null)
+            return;
+        IAnnotationModel model = provider.getAnnotationModel(editor.getEditorInput());
+        if (!(model instanceof IAnnotationModelExtension))
+            return;
+        IAnnotationModelExtension modelex = (IAnnotationModelExtension) model;
+        modelex.removeAnnotationModel(KEY);
+    }
 
-	private void updateAnnotations(boolean force) {
-		annotations.clear();
-		annotations.add(new DiffAnnotation(DiffType.ADDED, 1));
-		annotations.add(new DiffAnnotation(DiffType.MODIFIED, 3));
-		annotations.add(new DiffAnnotation(DiffType.DELETED, 4));
-		// final ISourceNode coverage = findSourceCoverageForEditor();
-		// if (coverage != null) {
-		// if (!annotated || force) {
-		// createAnnotations(coverage);
-		// annotated = true;
-		// }
-		// } else {
-		// if (annotated) {
-		// clear();
-		// annotated = false;
-		// }
-		// }
-	}
+    private void updateAnnotations(boolean force) {
+        annotations.clear();
+        annotations.add(new DiffAnnotation(DiffType.ADDED, 1));
+        annotations.add(new DiffAnnotation(DiffType.MODIFIED, 3));
+        annotations.add(new DiffAnnotation(DiffType.DELETED, 4));
+        // final ISourceNode coverage = findSourceCoverageForEditor();
+        // if (coverage != null) {
+        // if (!annotated || force) {
+        // createAnnotations(coverage);
+        // annotated = true;
+        // }
+        // } else {
+        // if (annotated) {
+        // clear();
+        // annotated = false;
+        // }
+        // }
+    }
 
-	private void clear() {
-		AnnotationModelEvent event = new AnnotationModelEvent(this);
-		clear(event);
-		fireModelChanged(event);
-	}
+    private void clear() {
+        AnnotationModelEvent event = new AnnotationModelEvent(this);
+        clear(event);
+        fireModelChanged(event);
+    }
 
-	private void clear(AnnotationModelEvent event) {
-		for (final DiffAnnotation ca : annotations) {
-			event.annotationRemoved(ca, ca.getPosition());
-		}
-		annotations.clear();
-	}
+    private void clear(AnnotationModelEvent event) {
+        for (final DiffAnnotation ca : annotations) {
+            event.annotationRemoved(ca, ca.getPosition());
+        }
+        annotations.clear();
+    }
 
-	public void addAnnotationModelListener(IAnnotationModelListener listener) {
-		annotationModelListeners.add(listener);
-		fireModelChanged(new AnnotationModelEvent(this, true));
-	}
+    public void addAnnotationModelListener(IAnnotationModelListener listener) {
+        annotationModelListeners.add(listener);
+        fireModelChanged(new AnnotationModelEvent(this, true));
+    }
 
-	public void removeAnnotationModelListener(IAnnotationModelListener listener) {
-		annotationModelListeners.remove(listener);
-	}
+    public void removeAnnotationModelListener(IAnnotationModelListener listener) {
+        annotationModelListeners.remove(listener);
+    }
 
-	private void fireModelChanged(AnnotationModelEvent event) {
-		event.markSealed();
-		if (!event.isEmpty()) {
-			for (final Object l : annotationModelListeners.getListeners()) {
-				if (l instanceof IAnnotationModelListenerExtension) {
-					((IAnnotationModelListenerExtension) l).modelChanged(event);
-				} else {
-					((IAnnotationModelListener) l).modelChanged(this);
-				}
-			}
-		}
-	}
+    private void fireModelChanged(AnnotationModelEvent event) {
+        event.markSealed();
+        if (!event.isEmpty()) {
+            for (final Object l : annotationModelListeners.getListeners()) {
+                if (l instanceof IAnnotationModelListenerExtension) {
+                    ((IAnnotationModelListenerExtension) l).modelChanged(event);
+                } else {
+                    ((IAnnotationModelListener) l).modelChanged(this);
+                }
+            }
+        }
+    }
 
-	public void connect(IDocument document) {
-		if (this.document != document)
-			throw new RuntimeException("Can't connect to different document."); //$NON-NLS-1$
-		for (final DiffAnnotation ca : annotations) {
-			try {
-				document.addPosition(ca.getPosition());
-			} catch (BadLocationException ex) {
-				// EclEmmaUIPlugin.log(ex);
-			}
-		}
-		if (openConnections++ == 0) {
-			document.addDocumentListener(documentListener);
-		}
-	}
+    public void connect(IDocument document) {
+        if (this.document != document)
+            throw new RuntimeException("Can't connect to different document."); //$NON-NLS-1$
+        for (final DiffAnnotation ca : annotations) {
+            try {
+                document.addPosition(ca.getPosition());
+            } catch (BadLocationException ex) {
+                // EclEmmaUIPlugin.log(ex);
+            }
+        }
+        if (openConnections++ == 0) {
+            document.addDocumentListener(documentListener);
+        }
+    }
 
-	public void disconnect(IDocument document) {
-		if (this.document != document)
-			throw new RuntimeException(
-					"Can't disconnect from different document."); //$NON-NLS-1$
-		for (final DiffAnnotation ca : annotations) {
-			document.removePosition(ca.getPosition());
-		}
-		if (--openConnections == 0) {
-			document.removeDocumentListener(documentListener);
-		}
-	}
+    public void disconnect(IDocument document) {
+        if (this.document != document)
+            throw new RuntimeException("Can't disconnect from different document."); //$NON-NLS-1$
+        for (final DiffAnnotation ca : annotations) {
+            document.removePosition(ca.getPosition());
+        }
+        if (--openConnections == 0) {
+            document.removeDocumentListener(documentListener);
+        }
+    }
 
-	/**
-	 * External modification is not supported.
-	 */
-	public void addAnnotation(Annotation annotation, Position position) {
-		throw new UnsupportedOperationException();
-	}
+    /**
+     * External modification is not supported.
+     */
+    public void addAnnotation(Annotation annotation, Position position) {
+        throw new UnsupportedOperationException();
+    }
 
-	/**
-	 * External modification is not supported.
-	 */
-	public void removeAnnotation(Annotation annotation) {
-		throw new UnsupportedOperationException();
-	}
+    /**
+     * External modification is not supported.
+     */
+    public void removeAnnotation(Annotation annotation) {
+        throw new UnsupportedOperationException();
+    }
 
-	public Iterator<?> getAnnotationIterator() {
-		return annotations.iterator();
-	}
+    public Iterator<?> getAnnotationIterator() {
+        return annotations.iterator();
+    }
 
-	public Position getPosition(Annotation annotation) {
-		if (annotation instanceof DiffAnnotation) {
-			return ((DiffAnnotation) annotation).getPosition();
-		} else {
-			return null;
-		}
-	}
+    public Position getPosition(Annotation annotation) {
+        if (annotation instanceof DiffAnnotation) {
+            return ((DiffAnnotation) annotation).getPosition();
+        } else {
+            return null;
+        }
+    }
 
 }

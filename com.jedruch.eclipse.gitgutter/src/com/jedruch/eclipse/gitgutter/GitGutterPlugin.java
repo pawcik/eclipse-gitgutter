@@ -11,63 +11,63 @@ import com.jedruch.eclipse.gitgutter.ui.EditorTracker;
  */
 public class GitGutterPlugin extends AbstractUIPlugin {
 
-	// The plug-in ID
-	public static final String PLUGIN_ID = "com.jedruch.eclipse.gitgutter"; //$NON-NLS-1$
+    // The plug-in ID
+    public static final String PLUGIN_ID = "com.jedruch.eclipse.gitgutter"; //$NON-NLS-1$
 
-	public static final String IMG_ADDED = "icons/added.gif";
+    public static final String IMG_ADDED = "icons/added.gif";
 
-	public static final String IMG_DELETED = "";
+    public static final String IMG_DELETED = "";
 
-	public static final String IMG_MODIFIED = "";
+    public static final String IMG_MODIFIED = "";
 
-	// The shared instance
-	private static GitGutterPlugin plugin;
+    // The shared instance
+    private static GitGutterPlugin plugin;
 
-	private EditorTracker editorTracker;
+    private EditorTracker editorTracker;
 
-	/**
-	 * The constructor
-	 */
-	public GitGutterPlugin() {
-	}
+    /**
+     * The constructor
+     */
+    public GitGutterPlugin() {
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext
-	 * )
-	 */
-	public void start(BundleContext context) throws Exception {
-		super.start(context);
-		editorTracker = new EditorTracker(getWorkbench());
-		plugin = this;
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext
+     * )
+     */
+    public void start(BundleContext context) throws Exception {
+        super.start(context);
+        editorTracker = new EditorTracker(getWorkbench());
+        plugin = this;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext
-	 * )
-	 */
-	public void stop(BundleContext context) throws Exception {
-		plugin = null;
-		editorTracker.dispose();
-		super.stop(context);
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext
+     * )
+     */
+    public void stop(BundleContext context) throws Exception {
+        plugin = null;
+        editorTracker.dispose();
+        super.stop(context);
+    }
 
-	/**
-	 * Returns the shared instance
-	 * 
-	 * @return the shared instance
-	 */
-	public static GitGutterPlugin getDefault() {
-		return plugin;
-	}
+    /**
+     * Returns the shared instance
+     * 
+     * @return the shared instance
+     */
+    public static GitGutterPlugin getDefault() {
+        return plugin;
+    }
 
-	public static ImageDescriptor getImageDescriptor(String path) {
-		return getDefault().getImageRegistry().getDescriptor(path);
-	}
+    public static ImageDescriptor getImageDescriptor(String path) {
+        return getDefault().getImageRegistry().getDescriptor(path);
+    }
 
 }
