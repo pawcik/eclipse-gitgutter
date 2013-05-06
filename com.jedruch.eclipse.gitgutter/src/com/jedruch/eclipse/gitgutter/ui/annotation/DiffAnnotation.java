@@ -15,14 +15,14 @@ public class DiffAnnotation extends Annotation implements IAnnotationPresentatio
     private static final String TYPE = "com.jedruch.eclipse.gitgutter.diff";
 
     public enum DiffType {
-        ADDED("+", Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN)),
-        DELETED("▬", Display.getCurrent().getSystemColor(SWT.COLOR_RED)),
-        MODIFIED("▄", Display.getCurrent().getSystemColor(SWT.COLOR_DARK_MAGENTA));
+        ADDED("+", SWT.COLOR_DARK_GREEN),
+        DELETED("▬", SWT.COLOR_RED),
+        MODIFIED("▄", SWT.COLOR_DARK_MAGENTA);
 
         private final String label;
-        private Color color;
+        private int color;
 
-        DiffType(String label, Color c) {
+        DiffType(String label, int c) {
             this.label = label;
             this.color = c;
         }
@@ -32,22 +32,24 @@ public class DiffAnnotation extends Annotation implements IAnnotationPresentatio
         }
 
         public Color getColor() {
-            return color;
+            return Display.getDefault().getSystemColor(color);
         }
 
     }
 
     private final DiffType diffType;
     private final int line;
+    private final int length;
 
-    public DiffAnnotation(DiffType type, int line) {
+    public DiffAnnotation(DiffType type, int line, int length) {
         super(TYPE, false, null);
         this.diffType = type;
         this.line = line;
+        this.length = length;
     }
 
     public Position getPosition() {
-        return new Position(line * 10, line);
+        return new Position(line, length);
     }
 
     public DiffType getDiffType() {
@@ -56,7 +58,7 @@ public class DiffAnnotation extends Annotation implements IAnnotationPresentatio
 
     @Override
     public int getLayer() {
-        return 0;
+        return 2;
     }
 
     @Override

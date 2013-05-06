@@ -5,7 +5,7 @@
          point="org.eclipse.ui.workbench.texteditor.rulerColumns">
       <column
             class="com.jedruch.eclipse.gitgutter.GitGutterColumn"
-            enabled="true"
+            enabled="false"
             global="true"
             id="com.jedruch.eclipse.gitgutter.column"
             includeInMenu="true"
@@ -48,8 +48,14 @@
             textPreferenceKey="fullcoverage_text"
             textPreferenceValue="true"
             textStylePreferenceKey="fullcoverage_stylePreferences"
-            textStylePreferenceValue="BOX"
+            textStylePreferenceValue="NONE"
             verticalRulerPreferenceKey="fullcoverage_verticalRuler"
             verticalRulerPreferenceValue="true"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.startup">
+      <startup
+            class="com.jedruch.eclipse.gitgutter.WorkbenchListener">
+      </startup>
    </extension>
 </plugin>
