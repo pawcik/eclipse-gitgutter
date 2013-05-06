@@ -11,9 +11,7 @@
  ******************************************************************************/
 package com.jedruch.eclipse.gitgutter.ui.annotation;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -21,7 +19,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.egit.core.GitProvider;
 import org.eclipse.jface.text.BadLocationException;
@@ -36,27 +33,28 @@ import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.IAnnotationModelExtension;
 import org.eclipse.jface.text.source.IAnnotationModelListener;
 import org.eclipse.jface.text.source.IAnnotationModelListenerExtension;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.Edit;
-import org.eclipse.jgit.diff.Edit.Type;
 import org.eclipse.jgit.diff.EditList;
 import org.eclipse.jgit.diff.HistogramDiff;
 import org.eclipse.jgit.diff.RawText;
 import org.eclipse.jgit.diff.RawTextComparator;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
+import org.eclipse.jgit.errors.RevisionSyntaxException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
-import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.team.core.RepositoryProvider;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
@@ -158,15 +156,13 @@ public final class DiffAnnotationModel implements IAnnotationModel {
                 try {
                     Repository repository = gitProvider.getData().getRepositoryMapping(project)
                             .getRepository();
-                    Git repo = new Git(repository);
                     String path = ((FileEditorInput) input).getFile().getFullPath().makeRelative()
                             .toString();
-
-                    List<DiffEntry> diffs = repo.diff().setPathFilter(PathFilter.create(path))
-                            .call();
-                    return createAnnotations(repository, diffs);
-                } catch (GitAPIException e) {
-                    e.printStackTrace();
+                    RawText old = new RawText(fetchBlob(path, repository));
+                    RawText neww = new RawText(document.get().getBytes());
+                    EditList edits = new HistogramDiff().diff(RawTextComparator.WS_IGNORE_ALL, old,
+                            neww);
+                    return createAnnotations(edits);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -175,77 +171,26 @@ public final class DiffAnnotationModel implements IAnnotationModel {
         return Collections.emptyList();
     }
 
-    private Collection<? extends DiffAnnotation> createAnnotations(Repository repo,
-            List<DiffEntry> diffs) {
-        for (DiffEntry e : diffs) {
-            RawText old = new RawText(getBytes(repo, e.getOldId().toObjectId()));
-            // // open the repository
-            // // find the HEAD
-            // // e.getOldId().toObjectId().getName();
-            // ObjectId head;
-            // try {
-            // head = repo.resolve(Constants.HEAD);
-            // RevWalk walk = new RevWalk(repo);
-            // RevCommit commit = walk.parseCommit(head);
-            // FileTreeIterator tree = new FileTreeIterator(repo);
-            // TreeWalk treewalk = new TreeWalk(repo);
-            // treewalk.setFilter(PathFilter.create(e.getOldPath()));
-            // treewalk.addTree(tree);
-            // // TreeWalk treewalk = TreeWalk.forPath(repo, e.getOldPath(),
-            // // tree);
-            // repo.open(treewalk.getObjectId(0)).getBytes();
-            // } catch (RevisionSyntaxException e1) {
-            // // TODO Auto-generated catch block
-            // e1.printStackTrace();
-            // } catch (AmbiguousObjectException e1) {
-            // // TODO Auto-generated catch block
-            // e1.printStackTrace();
-            // } catch (IncorrectObjectTypeException e1) {
-            // // TODO Auto-generated catch block
-            // e1.printStackTrace();
-            // } catch (IOException e1) {
-            // // TODO Auto-generated catch block
-            // e1.printStackTrace();
-            // }
+    private byte[] fetchBlob(String path, Repository repo) throws RevisionSyntaxException,
+            AmbiguousObjectException, IncorrectObjectTypeException, IOException {
+        // Resolve the revision specification
+        final ObjectId id = repo.resolve(Constants.HEAD);
 
-            // RawText neww = new RawText(getBytes(repo,
-            // e.getNewId().toObjectId()));
-            RawText neww = new RawText(document.get().getBytes());
-            EditList edits = new HistogramDiff().diff(RawTextComparator.DEFAULT, old, neww);
-            return createAnnotations(edits);
+        // Get the commit object for that revision
+        RevWalk walk = new RevWalk(repo);
+        RevCommit commit = walk.parseCommit(id);
+
+        // Get the commit's file tree
+        RevTree tree = commit.getTree();
+        // .. and narrow it down to the single file's path
+        TreeWalk treewalk = TreeWalk.forPath(repo, path, tree);
+
+        if (treewalk != null) { // if the file exists in that commit
+            // use the blob id to read the file's data
+            return repo.open(treewalk.getObjectId(0)).getBytes();
+        } else {
+            return new byte[0];
         }
-        return Collections.emptyList();
-    }
-
-    private byte[] getBytes(IEditorInput input) {
-        if (input instanceof IFileEditorInput) {
-            IFileEditorInput i = (IFileEditorInput) input;
-            InputStream stream = null;
-            try {
-                stream = i.getFile().getContents();
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                byte[] tmp = new byte[4096];
-                int ret = 0;
-                while ((ret = stream.read(tmp)) > 0) {
-                    bos.write(tmp, 0, ret);
-                }
-                byte[] myArray = bos.toByteArray();
-                return myArray;
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (CoreException e) {
-                e.printStackTrace();
-            } finally {
-                if (stream != null) {
-                    try {
-                        stream.close();
-                    } catch (IOException e) {
-                    }
-                }
-
-            }
-        }
-        return new byte[0];
     }
 
     /**
@@ -264,16 +209,40 @@ public final class DiffAnnotationModel implements IAnnotationModel {
     private Collection<? extends DiffAnnotation> createAnnotations(EditList edits) {
         List<DiffAnnotation> list = new ArrayList<DiffAnnotation>();
         for (Edit e : edits) {
-            if (Type.INSERT.equals(e.getType())) {
-
+            switch (e.getType()) {
+            case INSERT:
                 try {
                     IRegion lineB = document.getLineInformation(e.getBeginB());
                     IRegion lineE = document.getLineInformation(e.getEndB() - 1);
-                    int end = lineE.getOffset() + lineE.getLength() - lineB.getOffset();
-                    list.add(new DiffAnnotation(DiffType.ADDED, lineB.getOffset(), end));
+                    int end = 0;// lineE.getLength() + lineE.getOffset() +
+                                // lineB.getLength();
+                    AbstractTextEditor aa = null;
+                    list.add(new DiffAnnotation(DiffType.ADDED, lineB.getOffset(), end, e.getEndB()
+                            - e.getBeginB()));
                 } catch (BadLocationException e1) {
                     e1.printStackTrace();
                 }
+                break;
+            case DELETE:
+                try {
+                    IRegion lineB = document.getLineInformation(e.getBeginB());
+                    list.add(new DiffAnnotation(DiffType.DELETED, lineB.getOffset(), 0, 1));
+                } catch (BadLocationException e1) {
+                    e1.printStackTrace();
+                }
+                break;
+            case REPLACE:
+                try {
+                    IRegion lineB = document.getLineInformation(e.getBeginB());
+                    IRegion lineE = document.getLineInformation(e.getEndB() - 1);
+                    int end = lineE.getOffset() + lineE.getLength();
+                    list.add(new DiffAnnotation(DiffType.MODIFIED, lineB.getOffset(), end, e
+                            .getEndB() - e.getBeginB()));
+                } catch (BadLocationException e1) {
+                    e1.printStackTrace();
+                }
+                break;
+            case EMPTY:
             }
         }
         return list;

@@ -16,8 +16,8 @@ public class DiffAnnotation extends Annotation implements IAnnotationPresentatio
 
     public enum DiffType {
         ADDED("+", SWT.COLOR_DARK_GREEN),
-        DELETED("▬", SWT.COLOR_RED),
-        MODIFIED("▄", SWT.COLOR_DARK_MAGENTA);
+        DELETED("-", SWT.COLOR_RED),
+        MODIFIED("■", SWT.COLOR_DARK_MAGENTA);
 
         private final String label;
         private int color;
@@ -40,12 +40,14 @@ public class DiffAnnotation extends Annotation implements IAnnotationPresentatio
     private final DiffType diffType;
     private final int line;
     private final int length;
+    private final int lines;
 
-    public DiffAnnotation(DiffType type, int line, int length) {
+    public DiffAnnotation(DiffType type, int line, int length, int lines) {
         super(TYPE, false, null);
         this.diffType = type;
         this.line = line;
         this.length = length;
+        this.lines = lines;
     }
 
     public Position getPosition() {
@@ -64,7 +66,13 @@ public class DiffAnnotation extends Annotation implements IAnnotationPresentatio
     @Override
     public void paint(GC gc, Canvas canvas, Rectangle bounds) {
         gc.setForeground(getDiffType().getColor());
-        gc.drawString(getDiffType().getLabel(), bounds.x, bounds.y);
+        int lineHeight = bounds.height;
+        if (lines > 1) {
+            lineHeight = bounds.height / (lines - 1);
+        }
+        for (int i = 0; i < lines; i++) {
+            gc.drawString(getDiffType().getLabel(), bounds.x, bounds.y + lineHeight * i);
+        }
     }
 
 }
